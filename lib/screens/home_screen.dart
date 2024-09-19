@@ -1,3 +1,5 @@
+import 'dart:math'; // ランダムな文章を選ぶために追加
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +22,17 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasFood = false;
   int feedCount = 0;
   bool isPosting = false; // 投稿中かどうかのフラグ
+
+  // ランダムに選ばれる文章のリスト
+  final List<String> gymMessages = [
+    "ジムでムキｯ",
+    "肩がメロン！",
+    "ナイスバルク！",
+    "ぷるぷるしてる！",
+    "パンプがすごい！",
+    "プロテインが体にしみる！",
+    "筋肉がよろこんでる！"
+  ];
 
   @override
   void initState() {
@@ -90,6 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ランダムにジムのメッセージを選ぶ
+  String _getRandomGymMessage() {
+    final random = Random();
+    return gymMessages[random.nextInt(gymMessages.length)];
+  }
+
   Future<void> _postEvent() async {
     if (isPosting) return; // 投稿中なら処理をスキップ
 
@@ -97,7 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isPosting = true; // 投稿中のフラグを立てる
     });
 
-    String message = 'ジムに行きました！';
+    // ランダムなジムのメッセージを取得
+    String message = _getRandomGymMessage();
+
     try {
       await _firestoreService.addEvent(userId, username, message);
       print("Firestoreにイベントを追加しました。");

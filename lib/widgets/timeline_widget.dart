@@ -170,7 +170,7 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8), // メッセージと時刻の間にスペースを追加
+              const SizedBox(width: 1), // メッセージと時刻の間のスペースを1に調整
               // 時刻部分
               Text(
                 formattedTime,
