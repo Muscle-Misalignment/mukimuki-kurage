@@ -35,6 +35,15 @@ Future<int?> getCommunityGrowth(String? uid) async {
   }
 }
 
+//現在ログインしてるユーザーの情報を取得する
+Future<DocumentSnapshot> getCurrentUser(String uid) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  // 1. ユーザーのコミュニティを取得
+  DocumentSnapshot userDoc = await firestore.collection('users').doc(uid).get();
+  return userDoc;
+}
+
 //firestoreにアクセスして、ユーザーを登録する
 Future<void> registerUser(String uid, String username, String photoURL) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
