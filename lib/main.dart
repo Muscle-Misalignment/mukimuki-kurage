@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'src/router.dart'; // ルーティングをインポート
 import 'auth/sign_in_page.dart'; // サインインページをインポート
 import 'firebase_options.dart';
+import 'package:watnowhackthon20240918/auth/firestore_kurage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,13 @@ class AuthWrapper extends StatelessWidget {
         }
         if (snapshot.hasData && snapshot.data != null) {
           // ログイン済みのユーザーがいる場合、HomeScreenに遷移
+          final user = snapshot.data!;
+          final String uid = user.uid;
+          final String username = user.displayName!;
+          final String photoURL = user.photoURL!;
+
+          registerUser(uid, username, photoURL);
+
           return const PageRouter();
         }
         // ログインしていない場合、SignInPageに遷移
