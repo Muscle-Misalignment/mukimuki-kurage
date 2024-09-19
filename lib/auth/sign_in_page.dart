@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:watnowhackthon20240918/auth/firestore_kurage.dart';
-import '../screens/home_screen.dart';
+import '../src/Router.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -51,7 +51,7 @@ class _SignInPageState extends State<SignInPage> {
               // サインインに成功したらホーム画面へ遷移
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
+                MaterialPageRoute(builder: (context) => PageRouter()),
               );
             } catch (e) {
               print(e);

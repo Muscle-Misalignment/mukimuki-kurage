@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:watnowhackthon20240918/screens/user_screen.dart';
 import '../services/firestore_service.dart';
 import '../widgets/timeline_widget.dart';
 
@@ -19,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final String username =
       FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
 
-  int _selectedIndex = 0;
   bool hasFood = false;
   int feedCount = 0; // feed_countの値を保持する変数
 
@@ -120,12 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,29 +175,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-      // ボトムナビゲーションバーを配置
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFFFFDEA5),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.view_list), label: 'userlist'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'my page',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 252, 182, 97),
-        onTap: (index) {
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => UserScreen()),
-            );
-          }
-        },
       ),
     );
   }

@@ -26,9 +26,6 @@ Future<int?> getCommunityGrowth(String? uid) async {
   });
 
   if (communityDoc != null && communityDoc.exists) {
-    print("community_name : ${communityDoc['community_name']}");
-    print("feed_count : ${communityDoc['feed_count']}");
-    print("kurage_level : ${communityDoc['kurage_level']}");
     return communityDoc['kurage_level'];
   } else {
     return null;
