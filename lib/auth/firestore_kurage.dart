@@ -43,7 +43,7 @@ Future<void> registerUser(String uid, String username, String photoURL) async {
   await firestore.collection('users').doc(uid).set({
     'uid': uid,
     'username': username,
-    'pphotoURL': photoURL,
+    'photoURL': photoURL,
     'community': 'watnow',
   });
 }
