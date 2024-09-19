@@ -124,8 +124,8 @@ class ChatBubble extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isSentByMe
-                ? Color.fromARGB(255, 255, 255, 255)
-                : Color(0xFFFFDEA5),
+                ? Color.fromARGB(255, 255, 255, 255).withOpacity(0.8)
+                : Color(0xFFFFDEA5).withOpacity(0.8),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(12),
               topRight: isSentByMe ? Radius.zero : const Radius.circular(12),
@@ -143,7 +143,7 @@ class ChatBubble extends StatelessWidget {
           ),
           constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width *
-                0.5, // 吹き出しの最大幅をデバイス幅の50%に制限
+                0.45, // 吹き出しの最大幅をデバイス幅の50%に制限
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end, // メッセージと時刻を底揃えにする

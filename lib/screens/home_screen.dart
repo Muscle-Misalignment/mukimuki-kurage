@@ -1,5 +1,4 @@
 import 'dart:math'; // ランダムな文章を選ぶために追加
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasFood = false;
   int feedCount = 0;
   bool isPosting = false; // 投稿中かどうかのフラグ
+  bool showBubble = false; // クラゲの吹き出しを表示するかどうか
+  double bubbleOpacity = 0.0; // 吹き出しの透明度
 
   // ランダムに選ばれる文章のリスト
   final List<String> gymMessages = [
@@ -99,8 +100,27 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         hasFood = false;
       });
+      // 吹き出しの透明度を変更して表示
+      _showKurageBubble();
+
       await _incrementFeedCount();
     }
+  }
+
+  // 吹き出しの透明度を変更して表示・非表示にする処理
+  void _showKurageBubble() {
+    setState(() {
+      bubbleOpacity = 1.0;
+    });
+
+    // 3秒後に吹き出しを非表示にする
+    Future.delayed(Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          bubbleOpacity = 0.0;
+        });
+      }
+    });
   }
 
   // ランダムにジムのメッセージを選ぶ
@@ -159,6 +179,32 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          // クラゲの吹き出し（ご飯ありがとう）を表示（透明度を使って非表示にする）
+          Positioned(
+            right: 200, // 吹き出しをクラゲの中心に配置
+            top: 250, // クラゲの上部に吹き出しを配置
+            child: AnimatedOpacity(
+              opacity: bubbleOpacity,
+              duration: Duration(milliseconds: 500),
+              child: CustomPaint(
+                painter: SlantedBubblePainter(), // 吹き出しの尾を描く
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'ご飯ありがとう！',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           Positioned(
             right: 10,
             top: 0,
@@ -191,4 +237,27 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+// 吹き出しの尾を斜めに描画するカスタムペインター
+class SlantedBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+
+    // 斜めの吹き出しの尾を描画
+    path.moveTo(size.width / 2 - 20, size.height); // 左端
+    path.lineTo(size.width / 2 - 10, size.height + 20); // 尾の左下部分
+    path.lineTo(size.width / 2 + 20, size.height); // 右端
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
