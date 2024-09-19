@@ -74,10 +74,13 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      Container(
-                        width: 200,
-                        height: 50,
-                        color: const Color(0xB6DFFFFF),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0), // 角を丸める半径を指定
+                        child: Container(
+                          width: 200,
+                          height: 50,
+                          color: const Color(0xB6DFFFFF),
+                        ),
                       ),
                       Text(
                         username,
