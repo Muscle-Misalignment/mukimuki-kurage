@@ -15,16 +15,14 @@ class _BottomNavigationState extends State<BottomNavigation> {
   static final _screens = [
     HomeScreen(),
     const UserlistScreen(),
-    const UserScreen(
-      uid: "debug9999999999999999999",
-    )
+    UserScreen()
   ];
   // 選択されている画面のインデックス
   int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    // final ThemeData theme = Theme.of(context);
     return Scaffold(
       body: _screens[_selectedIndex],
       // 本題のNavigationBar
@@ -53,7 +51,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
           ),
           NavigationDestination(
             icon: Icon(Icons.account_circle),
-            label: 'account',
+            label: 'Mypage',
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import '../services/firestore_service.dart';
 import '../widgets/timeline_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:watnowhackthon20240918/screens/user_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -133,11 +134,20 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.view_list), label: 'userlist'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle), label: 'my page'),
+            icon: Icon(Icons.account_circle),
+            label: 'my page',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Color.fromARGB(255, 252, 182, 97),
-        onTap: _onItemTapped,
+        onTap: (index) {
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => UserScreen()),
+            );
+          }
+        },
       ),
     );
   }
