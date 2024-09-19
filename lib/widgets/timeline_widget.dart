@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
@@ -20,37 +22,48 @@ class _TimelineWidgetState extends State<TimelineWidget>
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<TimelineEvent> _events = [];
   Set<String> _eventIds = Set(); // イベントIDを保存して重複を防ぐ
+  StreamSubscription? _subscription; // リスナー用のサブスクリプション
 
   @override
   void initState() {
     super.initState();
 
-    // Firestoreからデータをリスニング (ドキュメントの変更のみリスニング)
-    widget._firestoreService.getTimeline().listen((snapshot) {
+    // Firestoreからデータをリスニング
+    _subscription = widget._firestoreService.getTimeline().listen((snapshot) {
       for (var change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
           final newEvent =
               TimelineEvent.fromMap(change.doc.data() as Map<String, dynamic>);
           if (!_eventIds.contains(newEvent.timestamp.toString())) {
-            setState(() {
-              _events.add(newEvent);
-              _eventIds.add(newEvent.timestamp.toString());
+            if (mounted) {
+              setState(() {
+                _events.add(newEvent);
+                _eventIds.add(newEvent.timestamp.toString());
 
-              // イベントをアニメーションで追加
-              _listKey.currentState?.insertItem(_events.length - 1);
-            });
+                // イベントをアニメーションで追加
+                _listKey.currentState?.insertItem(_events.length - 1);
+              });
 
-            // 自動スクロールを最下部に設定
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_scrollController.hasClients) {
-                _scrollController
-                    .jumpTo(_scrollController.position.maxScrollExtent);
-              }
-            });
+              // 自動スクロールを最下部に設定
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_scrollController.hasClients) {
+                  _scrollController
+                      .jumpTo(_scrollController.position.maxScrollExtent);
+                }
+              });
+            }
           }
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // ウィジェットが破棄されるときにリスナーを解除
+    _subscription?.cancel();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -157,7 +170,7 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 2), // メッセージと時刻の間にスペースを追加
+              const SizedBox(width: 8), // メッセージと時刻の間にスペースを追加
               // 時刻部分
               Text(
                 formattedTime,
