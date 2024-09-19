@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1071428749691",
+    "project_id": "watnowhackathon-20240918",
+    "storage_bucket": "watnowhackathon-20240918.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071428749691:android:5f116cc78570a1ff4955de",
+        "android_client_info": {
+          "package_name": "com.watnowhackthon.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxUZMFnEJ2dM0vPchKpVNPsWTEXNF7kWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
