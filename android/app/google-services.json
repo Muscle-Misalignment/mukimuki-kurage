@@ -12,7 +12,28 @@
           "package_name": "com.watnowhackthon.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1071428749691-7ka8ujgji4s6reflojro1jthl2odneds.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.watnowhackthon.app",
+            "certificate_hash": "45d7be2917559d79c8d1c36050d835e3c8a7293c"
+          }
+        },
+        {
+          "client_id": "1071428749691-k6qqkht7i7s9189vp0j1nbe2uqrpdvsa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.watnowhackthon.app",
+            "certificate_hash": "c86c563b290778b0a37648dadbbbe15538c54825"
+          }
+        },
+        {
+          "client_id": "1071428749691-nt9v0jvjil87lqbvnrtv74cvtsar7hhs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBxUZMFnEJ2dM0vPchKpVNPsWTEXNF7kWI"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1071428749691-nt9v0jvjil87lqbvnrtv74cvtsar7hhs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1071428749691-dbk9lcpr0dp687lk956okts5apehpimg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.watnowhackthon20240918"
+              }
+            }
+          ]
         }
       }
     }
