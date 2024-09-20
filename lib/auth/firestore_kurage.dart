@@ -42,5 +42,6 @@ Future<void> registerUser(String uid, String username, String photoURL) async {
     'username': username,
     'photoURL': photoURL,
     'community': 'watnow',
+    'goal': '',
   });
 }

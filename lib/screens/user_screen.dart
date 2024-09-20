@@ -1,17 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserScreen extends StatelessWidget {
-  UserScreen({super.key});
+class UserScreen extends StatefulWidget {
+  const UserScreen({Key? key}) : super(key: key);
 
-  // 現在の認証済みユーザー
-  final String userId = FirebaseAuth.instance.currentUser!.uid;
-  final String username =
-      FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
-  final String photoURL =
-      FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
+  @override
+  _UserScreenState createState() => _UserScreenState();
+}
 
-  final TextEditingController goalController = TextEditingController();
+
+class _UserScreenState extends State<UserScreen> {
+
+// Firestoreにデータを追加する関数
+Future<void> addGoalToFirestore(String userId, String goal) async {
+  await FirebaseFirestore.instance.collection('users').doc(userId).set({
+    'uId': userId,
+    'goal': goal,
+  }, SetOptions(merge: true));
+}
+
+  // インスタンスメンバー
+  late final String userId;
+  late final String username;
+  late final String photoURL;
+  late final TextEditingController goalController;
+  @override
+  void initState() {
+    super.initState();
+    userId = FirebaseAuth.instance.currentUser!.uid;
+    username = FirebaseAuth.instance.currentUser!.displayName ?? "Anonymous";
+    photoURL = FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
+
+    goalController = TextEditingController(text: "",);
+
+    // Firestoreからデータを取得する例
+    FirebaseFirestore.instance.collection('users').doc(userId).get().then((doc) {
+      if (doc.exists) {
+        setState(() {
+          goalController.text = doc.data()?['goal'] ?? "";
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,27 +68,24 @@ class UserScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(flex: 1),
-              Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 200,
-                      height: 50,
-                      color: Colors.blue,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [
-                        Text(
-                          username,
-                          style: const TextStyle(fontSize: 30),
-                        ),
-                        const Icon(Icons.edit),
-                      ]
-                    )
-                  ]
-                )
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center, 
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 200,
+                        height: 50,
+                        color: const Color(0xB6DFFFFF),
+                      ),
+                      Text(
+                        username,
+                        style: const TextStyle(fontSize: 30),
+                      )
+                    ]
+                  ),
+                ],
               ),
               const SizedBox(height: 20), // スペースを追加
               Padding(
@@ -66,8 +94,11 @@ class UserScreen extends StatelessWidget {
                   controller: goalController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: '目標を入力してください',
+                    labelText: '目標',
                   ),
+                  onSubmitted: (value) {
+                    addGoalToFirestore(userId, value);
+                  },
                 ),
               ),
               const Spacer(flex: 6),
