@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:watnowhackthon20240918/auth/sign_in_page.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
@@ -41,6 +42,14 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
         });
       }
     });
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SignInPage()),
+    );
   }
 
   @override
@@ -106,6 +115,10 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
                 ),
               ),
               const Spacer(flex: 6),
+              ElevatedButton(
+                onPressed: _signOut,
+                child: Text('サインアウト'),
+              ),
             ],
           ),
         ),
