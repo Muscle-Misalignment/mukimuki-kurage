@@ -14,19 +14,18 @@ class _UserlistScreenState extends State<UserlistScreen> {
   Future<List<Map<String, dynamic>>> fetchUsers() async {
     try {
       QuerySnapshot querySnapshot = await _firestore.collection('users').get();
-      final users = querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>);
+      final users =
+          querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>);
       return users.toList();
-
     } catch (e) {
       print('Error fetching users: $e');
-    return [];
+      return [];
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('User List')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchUsers(),
         builder: (context, snapshot) {
@@ -38,22 +37,47 @@ class _UserlistScreenState extends State<UserlistScreen> {
             return const Center(child: Text('No users found'));
           } else {
             final users = snapshot.data!;
-            return ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user['username']),
-                  subtitle: Text(user['community']),
-                  leading:  CircleAvatar(
-                          backgroundImage: NetworkImage(user['photoURL']),
-                          onBackgroundImageError: (_, __) {
-                          // エラーが発生した場合の処理
-                          const Icon(Icons.account_circle);
-                        },
+            return Scaffold(
+              body: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      'images/sea.jpg',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return Card(
+                        color: const Color(0xB6DFFFFF),
+                        margin: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom:10),
+                        elevation: 8, // 影の離れ具合
+                        shadowColor: Colors.black ,// 影の色
+                        shape: RoundedRectangleBorder( // 枠線を変更できる
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                );
-              },
+                        child: Column(
+                          children: [
+                            ListTile(
+                              title: Text(user['username']),
+                              subtitle: Text(user['community']),
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(user['photoURL']),
+                                onBackgroundImageError: (_, __) {
+                                  // エラーが発生した場合の処理
+                                  const Icon(Icons.account_circle);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+                ],
+              ),
             );
           }
         },
