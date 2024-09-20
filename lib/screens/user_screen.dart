@@ -34,7 +34,6 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
 
     goalController = TextEditingController(text: "",);
 
-    // Firestoreからデータを取得する例
     FirebaseFirestore.instance.collection('users').doc(userId).get().then((doc) {
       if (doc.exists) {
         setState(() {
@@ -96,6 +95,8 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
                 child: TextField(
                   controller: goalController,
                   decoration: const InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     border: OutlineInputBorder(),
                     labelText: '目標',
                   ),
