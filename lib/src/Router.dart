@@ -1,3 +1,4 @@
+import 'dart:math'; // 回転のために追加
 import 'package:flutter/material.dart';
 import 'package:watnowhackthon20240918/screens/home_screen.dart';
 import 'package:watnowhackthon20240918/screens/user_screen.dart';
@@ -10,25 +11,38 @@ class PageRouter extends StatefulWidget {
   State<PageRouter> createState() => _PageRouterState();
 }
 
-class _PageRouterState extends State<PageRouter> {
+class _PageRouterState extends State<PageRouter>
+    with SingleTickerProviderStateMixin {
   // 各画面のリスト
   static final _screens = [HomeScreen(), const UserlistScreen(), UserScreen()];
   // 選択されている画面のインデックス
   int _selectedIndex = 0;
   bool _isDelayActive = false;
 
+  late AnimationController _controller;
+
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
     _addDelay();
   }
 
   void _addDelay() {
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         _isDelayActive = false;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -38,11 +52,47 @@ class _PageRouterState extends State<PageRouter> {
         children: [
           _screens[_selectedIndex],
           if (_isDelayActive)
-            Container(
-              color: Colors.white, // ローディング中の背景を白に変更
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+            Stack(
+              children: [
+                Positioned.fill(
+                  // 背景画像を表示
+                  child: Image.asset(
+                    'images/sea.jpg', // 背景画像のパス
+                    fit: BoxFit.cover, // 画面全体にフィット
+                  ),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // 回転する画像
+                      AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          return Transform.rotate(
+                            angle: _controller.value * 2 * pi,
+                            child: child,
+                          );
+                        },
+                        child: Image.asset(
+                          'images/yowakurage_seisiga.PNG', // 回転する画像のパス
+                          width: 100,
+                          height: 100,
+                        ),
+                      ),
+                      const SizedBox(height: 20), // 回転画像とテキストの間にスペースを追加
+                      // 静止しているテキスト
+                      const Text(
+                        'Loading, please wait...', // 表示するテキスト
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black, // テキストの色
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
         ],
       ),
