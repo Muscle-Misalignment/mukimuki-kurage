@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "プロテイン飲めよ！",
     "ご飯たべろよ！",
     "よくがんばった！",
+    "ちゃんとねろよ！"
   ];
 
   @override
@@ -236,9 +237,15 @@ class _HomeScreenState extends State<HomeScreen> {
             left: 10,
             child: ElevatedButton(
               onPressed: hasFood ? _feedKurage : null,
-              child: Text('餌をあげる'),
+              child: Text(
+                '餌をあげる',
+                style: TextStyle(
+                  color: Color(0xFF696969), // テキストの色をグレーに変更
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: hasFood ? Colors.blue : Colors.grey,
+                backgroundColor:
+                    hasFood ? Color(0xFFFFDEA5) : Colors.grey, // ボタンの色を変更
               ),
             ),
           ),
@@ -247,7 +254,17 @@ class _HomeScreenState extends State<HomeScreen> {
             left: 10,
             child: ElevatedButton(
               onPressed: isPosting ? null : _postEvent, // 投稿中は無効化
-              child: isPosting ? CircularProgressIndicator() : Text('ジムを記録'),
+              child: isPosting
+                  ? CircularProgressIndicator()
+                  : Text(
+                      'ジムを記録',
+                      style: TextStyle(
+                        color: Color(0xFF696969), // テキストの色をグレーに変更
+                      ),
+                    ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFDEA5), // ボタンの背景色を変更
+              ),
             ),
           ),
         ],
