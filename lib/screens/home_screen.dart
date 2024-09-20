@@ -23,8 +23,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isPosting = false; // 投稿中かどうかのフラグ
   bool showBubble = false; // クラゲの吹き出しを表示するかどうか
   double bubbleOpacity = 0.0; // 吹き出しの透明度
+  String bubbleMessage = "ご飯ありがとう！"; // 吹き出しに表示するメッセージ
 
-  // ランダムに選ばれる文章のリスト
+  // ランダムに選ばれるジムのメッセージのリスト
   final List<String> gymMessages = [
     "ジムでムキｯ",
     "肩がメロン！",
@@ -33,6 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
     "パンプがすごい！",
     "プロテインが体にしみる！",
     "筋肉がよろこんでる！"
+  ];
+
+  // ランダムに選ばれる吹き出しのメッセージのリスト
+  final List<String> bubbleMessages = [
+    "明日もジムだッ！",
+    "プロテイン飲めよ！",
+    "ご飯たべろよ！",
+    "よくがんばった！",
   ];
 
   @override
@@ -99,6 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (hasFood) {
       setState(() {
         hasFood = false;
+        // ランダムな吹き出しメッセージを選択
+        bubbleMessage = _getRandomBubbleMessage();
       });
       // 吹き出しの透明度を変更して表示
       _showKurageBubble();
@@ -127,6 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getRandomGymMessage() {
     final random = Random();
     return gymMessages[random.nextInt(gymMessages.length)];
+  }
+
+  // ランダムに吹き出しメッセージを選ぶ
+  String _getRandomBubbleMessage() {
+    final random = Random();
+    return bubbleMessages[random.nextInt(bubbleMessages.length)];
   }
 
   Future<void> _postEvent() async {
@@ -195,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    'ご飯ありがとう！',
+                    bubbleMessage, // ランダムに選ばれた吹き出しメッセージを表示
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
