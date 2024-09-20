@@ -18,7 +18,7 @@ class FirestoreService {
   // Firestoreからタイムラインのデータをリアルタイムで取得する関数
   Stream<QuerySnapshot> getTimeline() {
     return timelineCollection
-        .orderBy('timestamp', descending: true)
+        .orderBy('timestamp', descending: false)
         .snapshots();
   }
 }

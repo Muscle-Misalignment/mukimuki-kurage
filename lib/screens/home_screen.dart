@@ -1,3 +1,4 @@
+import 'dart:math'; // ランダムな文章を選ぶために追加
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,21 +14,43 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // 現在の認証済みユーザー情報を取得
   final String userId = FirebaseAuth.instance.currentUser!.uid;
   final String username =
       FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
 
   bool hasFood = false;
-  int feedCount = 0; // feed_countの値を保持する変数
+  int feedCount = 0;
+  bool isPosting = false; // 投稿中かどうかのフラグ
+  bool showBubble = false; // クラゲの吹き出しを表示するかどうか
+  double bubbleOpacity = 0.0; // 吹き出しの透明度
+  String bubbleMessage = "ご飯ありがとう！"; // 吹き出しに表示するメッセージ
+
+  // ランダムに選ばれるジムのメッセージのリスト
+  final List<String> gymMessages = [
+    "ジムでムキｯ",
+    "肩がメロン！",
+    "ナイスバルク！",
+    "ぷるぷるしてる！",
+    "パンプがすごい！",
+    "プロテインが体にしみる！",
+    "筋肉がよろこんでる！"
+  ];
+
+  // ランダムに選ばれる吹き出しのメッセージのリスト
+  final List<String> bubbleMessages = [
+    "明日もジムだッ！",
+    "プロテイン飲めよ！",
+    "ご飯たべろよ！",
+    "よくがんばった！",
+    "ちゃんとねろよ！"
+  ];
 
   @override
   void initState() {
     super.initState();
-    _getFeedCount(); // 初期化時にfeed_countを取得して判定
+    _getFeedCount();
   }
 
-  // Firestoreからfeed_countを取得する関数
   Future<void> _getFeedCount() async {
     try {
       DocumentSnapshot doc = await _firestore
@@ -36,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
       if (doc.exists) {
         setState(() {
-          // feed_countを更新し、画面の再描画を行う
           feedCount = (doc.data() as Map<String, dynamic>)['feed_count'] ?? 0;
         });
       }
@@ -45,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // feed_countに基づいてクラゲの画像を選択する関数
   String _getKurageImage() {
     if (feedCount >= 0 && feedCount <= 5) {
       return 'images/yowakurage.gif';
@@ -56,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Firestoreでのfeed_countのフィールドを+1する処理
   Future<void> _incrementFeedCount() async {
     try {
       DocumentReference docRef =
@@ -72,16 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
         int currentFeedCount = (data['feed_count'] ?? 0);
         int newFeedCount = currentFeedCount + 1;
 
-        // feed_countが5→6または10→11に変わるタイミングでのみクラゲ画像を再描画
-        if ((currentFeedCount == 5 && newFeedCount == 6) ||
-            (currentFeedCount == 10 && newFeedCount == 11)) {
-          setState(() {
-            feedCount = newFeedCount; // feed_countを更新して画像を再描画
-          });
-        } else {
-          // 通常のfeed_countの更新
+        setState(() {
           feedCount = newFeedCount;
-        }
+        });
 
         transaction.update(docRef, {'feed_count': newFeedCount});
       });
@@ -92,29 +105,72 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // クラゲに餌をあげる処理
   void _feedKurage() async {
     if (hasFood) {
       setState(() {
         hasFood = false;
+        // ランダムな吹き出しメッセージを選択
+        bubbleMessage = _getRandomBubbleMessage();
       });
-      print("クラゲに餌をあげました！");
-      await _incrementFeedCount(); // feed_countを更新し、画像の再判定を行う
+      // 吹き出しの透明度を変更して表示
+      _showKurageBubble();
+
+      await _incrementFeedCount();
     }
   }
 
-  // Firestoreにイベントを投稿する処理
+  // 吹き出しの透明度を変更して表示・非表示にする処理
+  void _showKurageBubble() {
+    setState(() {
+      bubbleOpacity = 1.0;
+    });
+
+    // 3秒後に吹き出しを非表示にする
+    Future.delayed(Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          bubbleOpacity = 0.0;
+        });
+      }
+    });
+  }
+
+  // ランダムにジムのメッセージを選ぶ
+  String _getRandomGymMessage() {
+    final random = Random();
+    return gymMessages[random.nextInt(gymMessages.length)];
+  }
+
+  // ランダムに吹き出しメッセージを選ぶ
+  String _getRandomBubbleMessage() {
+    final random = Random();
+    return bubbleMessages[random.nextInt(bubbleMessages.length)];
+  }
+
   Future<void> _postEvent() async {
-    String message = 'ジムに行きました！';
+    if (isPosting) return; // 投稿中なら処理をスキップ
+
+    setState(() {
+      isPosting = true; // 投稿中のフラグを立てる
+    });
+
+    // ランダムなジムのメッセージを取得
+    String message = _getRandomGymMessage();
+
     try {
       await _firestoreService.addEvent(userId, username, message);
       print("Firestoreにイベントを追加しました。");
 
       setState(() {
         hasFood = true;
+        isPosting = false; // 投稿が終わったらフラグをリセット
       });
     } catch (error) {
       print("Firestoreへの書き込みエラー: $error");
+
+      setState(() {
+        isPosting = false; // エラーが発生した場合もフラグをリセット
+      });
     }
   }
 
@@ -123,14 +179,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 背景画像を配置
           Positioned.fill(
             child: Image.asset(
               'images/sea.jpg',
               fit: BoxFit.cover,
             ),
           ),
-          // クラゲのアニメーション画像を配置 (feed_countに基づく画像)
           Positioned(
             right: 10,
             top: 100,
@@ -138,12 +192,37 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 600,
               height: 600,
               child: Image.asset(
-                _getKurageImage(), // 初回取得時に判定されたクラゲ画像を表示
+                _getKurageImage(),
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          // TimelineWidgetを配置し、displayNameを渡す
+          // クラゲの吹き出し（ご飯ありがとう）を表示（透明度を使って非表示にする）
+          Positioned(
+            right: 200, // 吹き出しをクラゲの中心に配置
+            top: 250, // クラゲの上部に吹き出しを配置
+            child: AnimatedOpacity(
+              opacity: bubbleOpacity,
+              duration: Duration(milliseconds: 500),
+              child: CustomPaint(
+                painter: SlantedBubblePainter(), // 吹き出しの尾を描く
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    bubbleMessage, // ランダムに選ばれた吹き出しメッセージを表示
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           Positioned(
             right: 10,
             top: 0,
@@ -153,29 +232,66 @@ class _HomeScreenState extends State<HomeScreen> {
               child: TimelineWidget(displayName: username),
             ),
           ),
-          // 餌をあげるボタンを配置
           Positioned(
             bottom: 120,
             left: 10,
             child: ElevatedButton(
               onPressed: hasFood ? _feedKurage : null,
-              child: Text('餌をあげる'),
+              child: Text(
+                '餌をあげる',
+                style: TextStyle(
+                  color: Color(0xFF696969), // テキストの色をグレーに変更
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: hasFood ? Colors.blue : Colors.grey,
+                backgroundColor:
+                    hasFood ? Color(0xFFFFDEA5) : Colors.grey, // ボタンの色を変更
               ),
             ),
           ),
-          // ジムを記録するボタンを配置
           Positioned(
             bottom: 60,
             left: 10,
             child: ElevatedButton(
-              onPressed: _postEvent,
-              child: Text('ジムを記録'),
+              onPressed: isPosting ? null : _postEvent, // 投稿中は無効化
+              child: isPosting
+                  ? CircularProgressIndicator()
+                  : Text(
+                      'ジムを記録',
+                      style: TextStyle(
+                        color: Color(0xFF696969), // テキストの色をグレーに変更
+                      ),
+                    ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFDEA5), // ボタンの背景色を変更
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+// 吹き出しの尾を斜めに描画するカスタムペインター
+class SlantedBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+
+    // 斜めの吹き出しの尾を描画
+    path.moveTo(size.width / 2 - 20, size.height); // 左端
+    path.lineTo(size.width / 2 - 10, size.height + 20); // 尾の左下部分
+    path.lineTo(size.width / 2 + 20, size.height); // 右端
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

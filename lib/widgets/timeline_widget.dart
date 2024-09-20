@@ -1,49 +1,97 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../models/timeline_event.dart';
 import 'package:intl/intl.dart';
 
-class TimelineWidget extends StatelessWidget {
+class TimelineWidget extends StatefulWidget {
   final FirestoreService _firestoreService = FirestoreService();
-  final String displayName; // displayNameを受け取る
-
-  // コンストラクタでdisplayNameを受け取るようにする
+  final String displayName;
 
   TimelineWidget({required this.displayName});
 
   @override
+  _TimelineWidgetState createState() => _TimelineWidgetState();
+}
+
+class _TimelineWidgetState extends State<TimelineWidget>
+    with SingleTickerProviderStateMixin {
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  List<TimelineEvent> _events = [];
+  Set<String> _eventIds = Set(); // イベントIDを保存して重複を防ぐ
+  StreamSubscription? _subscription; // リスナー用のサブスクリプション
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Firestoreからデータをリスニング
+    _subscription = widget._firestoreService.getTimeline().listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final newEvent =
+              TimelineEvent.fromMap(change.doc.data() as Map<String, dynamic>);
+          if (!_eventIds.contains(newEvent.timestamp.toString())) {
+            if (mounted) {
+              setState(() {
+                _events.add(newEvent);
+                _eventIds.add(newEvent.timestamp.toString());
+
+                // イベントをアニメーションで追加
+                _listKey.currentState?.insertItem(_events.length - 1);
+              });
+
+              // 自動スクロールを最下部に設定
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_scrollController.hasClients) {
+                  _scrollController
+                      .jumpTo(_scrollController.position.maxScrollExtent);
+                }
+              });
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // ウィジェットが破棄されるときにリスナーを解除
+    _subscription?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestoreService.getTimeline(),
-      builder: (context, snapshot) {
-        // エラーが発生した場合
-        if (snapshot.hasError) {
-          return Center(child: Text('エラーが発生しました'));
-        }
+    if (_events.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-        // データがまだ来ていない場合 (nullチェック)
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator()); // ローディング表示
-        }
-
-        // データが取得できた場合
-        final events = snapshot.data!.docs
-            .map((doc) =>
-                TimelineEvent.fromMap(doc.data() as Map<String, dynamic>))
-            .toList();
-
-        return ListView.builder(
-          itemCount: events.length,
-          itemBuilder: (context, index) {
-            final event = events[index];
-            return ChatBubble(
-              message: event.message,
-              username: event.username,
-              timestamp: event.timestamp,
-              isSentByMe: event.username == displayName, // displayNameを使って判定
-            );
-          },
+    return AnimatedList(
+      key: _listKey,
+      controller: _scrollController,
+      initialItemCount: _events.length,
+      itemBuilder: (context, index, animation) {
+        final event = _events[index];
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(1, 0), // 右側からの開始位置
+            end: Offset(0, 0), // 左端に固定される位置
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut, // イージングを適用
+          )),
+          child: ChatBubble(
+            message: event.message,
+            username: event.username,
+            timestamp: event.timestamp,
+            isSentByMe: event.username == widget.displayName,
+          ),
         );
       },
     );
@@ -76,8 +124,8 @@ class ChatBubble extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isSentByMe
-                ? Color.fromARGB(255, 255, 255, 255)
-                : Color(0xFFFFDEA5),
+                ? Color.fromARGB(255, 255, 255, 255).withOpacity(0.8)
+                : Color(0xFFFFDEA5).withOpacity(0.8),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(12),
               topRight: isSentByMe ? Radius.zero : const Radius.circular(12),
@@ -95,7 +143,7 @@ class ChatBubble extends StatelessWidget {
           ),
           constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width *
-                0.5, // 吹き出しの最大幅をデバイス幅の50%に制限
+                0.45, // 吹き出しの最大幅をデバイス幅の50%に制限
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end, // メッセージと時刻を底揃えにする
@@ -122,7 +170,7 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8), // メッセージと時刻の間にスペースを追加
+              const SizedBox(width: 1), // メッセージと時刻の間のスペースを1に調整
               // 時刻部分
               Text(
                 formattedTime,
