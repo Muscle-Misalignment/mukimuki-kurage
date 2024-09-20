@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../screens/home_screen.dart';
+import 'package:watnowhackthon20240918/auth/firestore_kurage.dart';
+import '../src/Router.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -36,11 +37,21 @@ class _SignInPageState extends State<SignInPage> {
         child: ElevatedButton(
           onPressed: () async {
             try {
-              await signInWithGoogle();
+              //googleサインイン
+              final authResult = await signInWithGoogle();
+
+              final user = authResult.user;
+
+              final uid = user!.uid;
+              final username = user.displayName!;
+              final photoURL = user.photoURL!;
+
+              registerUser(uid, username, photoURL);
+
               // サインインに成功したらホーム画面へ遷移
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
+                MaterialPageRoute(builder: (context) => PageRouter()),
               );
             } catch (e) {
               print(e);

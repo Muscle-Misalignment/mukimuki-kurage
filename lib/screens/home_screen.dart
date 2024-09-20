@@ -1,8 +1,9 @@
+import 'dart:math'; // ランダムな文章を選ぶために追加
 import 'package:flutter/material.dart';
-import '../services/firestore_service.dart';
-import '../widgets/timeline_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/firestore_service.dart';
+import '../widgets/timeline_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -13,21 +14,68 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // 現在の認証済みユーザー
   final String userId = FirebaseAuth.instance.currentUser!.uid;
   final String username =
       FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
 
-  int _selectedIndex = 0;
   bool hasFood = false;
+  int feedCount = 0;
+  bool isPosting = false; // 投稿中かどうかのフラグ
+  bool showBubble = false; // クラゲの吹き出しを表示するかどうか
+  double bubbleOpacity = 0.0; // 吹き出しの透明度
+  String bubbleMessage = "ご飯ありがとう！"; // 吹き出しに表示するメッセージ
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  // ランダムに選ばれるジムのメッセージのリスト
+  final List<String> gymMessages = [
+    "ジムでムキｯ",
+    "肩がメロン！",
+    "ナイスバルク！",
+    "ぷるぷるしてる！",
+    "パンプがすごい！",
+    "プロテインが体にしみる！",
+    "筋肉がよろこんでる！"
+  ];
+
+  // ランダムに選ばれる吹き出しのメッセージのリスト
+  final List<String> bubbleMessages = [
+    "明日もジムだッ！",
+    "プロテイン飲めよ！",
+    "ご飯たべろよ！",
+    "よくがんばった！",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _getFeedCount();
   }
 
-  // Firestoreでのfeed_countのフィールドを+1する処理
+  Future<void> _getFeedCount() async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('communities')
+          .doc('9lDWqOZfKMrIXd05Z6Kv')
+          .get();
+      if (doc.exists) {
+        setState(() {
+          feedCount = (doc.data() as Map<String, dynamic>)['feed_count'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print("feed_countの取得に失敗しました: $e");
+    }
+  }
+
+  String _getKurageImage() {
+    if (feedCount >= 0 && feedCount <= 5) {
+      return 'images/yowakurage.gif';
+    } else if (feedCount >= 6 && feedCount <= 10) {
+      return 'images/nomalkurage.gif';
+    } else {
+      return 'images/mukikurage.gif';
+    }
+  }
+
   Future<void> _incrementFeedCount() async {
     try {
       DocumentReference docRef =
@@ -38,8 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!snapshot.exists) {
           throw Exception("ドキュメントが存在しません");
         }
+
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-        int newFeedCount = (data['feed_count'] ?? 0) + 1;
+        int currentFeedCount = (data['feed_count'] ?? 0);
+        int newFeedCount = currentFeedCount + 1;
+
+        setState(() {
+          feedCount = newFeedCount;
+        });
+
         transaction.update(docRef, {'feed_count': newFeedCount});
       });
 
@@ -49,27 +104,72 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _feedKurage() async {
+    if (hasFood) {
+      setState(() {
+        hasFood = false;
+        // ランダムな吹き出しメッセージを選択
+        bubbleMessage = _getRandomBubbleMessage();
+      });
+      // 吹き出しの透明度を変更して表示
+      _showKurageBubble();
+
+      await _incrementFeedCount();
+    }
+  }
+
+  // 吹き出しの透明度を変更して表示・非表示にする処理
+  void _showKurageBubble() {
+    setState(() {
+      bubbleOpacity = 1.0;
+    });
+
+    // 3秒後に吹き出しを非表示にする
+    Future.delayed(Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          bubbleOpacity = 0.0;
+        });
+      }
+    });
+  }
+
+  // ランダムにジムのメッセージを選ぶ
+  String _getRandomGymMessage() {
+    final random = Random();
+    return gymMessages[random.nextInt(gymMessages.length)];
+  }
+
+  // ランダムに吹き出しメッセージを選ぶ
+  String _getRandomBubbleMessage() {
+    final random = Random();
+    return bubbleMessages[random.nextInt(bubbleMessages.length)];
+  }
+
   Future<void> _postEvent() async {
-    String message = 'ジムに行きました！';
+    if (isPosting) return; // 投稿中なら処理をスキップ
+
+    setState(() {
+      isPosting = true; // 投稿中のフラグを立てる
+    });
+
+    // ランダムなジムのメッセージを取得
+    String message = _getRandomGymMessage();
+
     try {
       await _firestoreService.addEvent(userId, username, message);
       print("Firestoreにイベントを追加しました。");
 
       setState(() {
         hasFood = true;
+        isPosting = false; // 投稿が終わったらフラグをリセット
       });
     } catch (error) {
       print("Firestoreへの書き込みエラー: $error");
-    }
-  }
 
-  void _feedJellyfish() async {
-    if (hasFood) {
       setState(() {
-        hasFood = false;
+        isPosting = false; // エラーが発生した場合もフラグをリセット
       });
-      print("クラゲに餌をあげました！");
-      await _incrementFeedCount();
     }
   }
 
@@ -91,8 +191,34 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 600,
               height: 600,
               child: Image.asset(
-                'images/mukikurage.gif',
+                _getKurageImage(),
                 fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          // クラゲの吹き出し（ご飯ありがとう）を表示（透明度を使って非表示にする）
+          Positioned(
+            right: 200, // 吹き出しをクラゲの中心に配置
+            top: 250, // クラゲの上部に吹き出しを配置
+            child: AnimatedOpacity(
+              opacity: bubbleOpacity,
+              duration: Duration(milliseconds: 500),
+              child: CustomPaint(
+                painter: SlantedBubblePainter(), // 吹き出しの尾を描く
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    bubbleMessage, // ランダムに選ばれた吹き出しメッセージを表示
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -102,14 +228,14 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: 0,
             child: Container(
               width: MediaQuery.of(context).size.width * 0.7,
-              child: TimelineWidget(),
+              child: TimelineWidget(displayName: username),
             ),
           ),
           Positioned(
             bottom: 120,
             left: 10,
             child: ElevatedButton(
-              onPressed: hasFood ? _feedJellyfish : null,
+              onPressed: hasFood ? _feedKurage : null,
               child: Text('餌をあげる'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: hasFood ? Colors.blue : Colors.grey,
@@ -120,25 +246,35 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: 60,
             left: 10,
             child: ElevatedButton(
-              onPressed: _postEvent,
-              child: Text('ジムを記録'),
+              onPressed: isPosting ? null : _postEvent, // 投稿中は無効化
+              child: isPosting ? CircularProgressIndicator() : Text('ジムを記録'),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFFFFDEA5),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.view_list), label: 'userlist'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle), label: 'my page'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 252, 182, 97),
-        onTap: _onItemTapped,
-      ),
     );
   }
+}
+
+// 吹き出しの尾を斜めに描画するカスタムペインター
+class SlantedBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+
+    // 斜めの吹き出しの尾を描画
+    path.moveTo(size.width / 2 - 20, size.height); // 左端
+    path.lineTo(size.width / 2 - 10, size.height + 20); // 尾の左下部分
+    path.lineTo(size.width / 2 + 20, size.height); // 右端
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

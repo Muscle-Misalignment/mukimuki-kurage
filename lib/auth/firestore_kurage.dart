@@ -26,9 +26,6 @@ Future<int?> getCommunityGrowth(String? uid) async {
   });
 
   if (communityDoc != null && communityDoc.exists) {
-    print("community_name : ${communityDoc['community_name']}");
-    print("feed_count : ${communityDoc['feed_count']}");
-    print("kurage_level : ${communityDoc['kurage_level']}");
     return communityDoc['kurage_level'];
   } else {
     return null;
@@ -43,7 +40,7 @@ Future<void> registerUser(String uid, String username, String photoURL) async {
   await firestore.collection('users').doc(uid).set({
     'uid': uid,
     'username': username,
-    'pphotoURL': photoURL,
+    'photoURL': photoURL,
     'community': 'watnow',
   });
 }
