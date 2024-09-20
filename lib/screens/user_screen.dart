@@ -66,7 +66,15 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
         Center(
           child: Column(
             children: [
-              const Spacer(flex: 2),
+              const Spacer(flex: 1),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: _signOut,
+                  child: Text('サインアウト'),
+                ),
+              ),
+              const Spacer(flex: 1),
               Align(
                 alignment: const Alignment(0.0, 0.0),
                 child: CircleAvatar(
@@ -114,11 +122,7 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
                   },
                 ),
               ),
-              const Spacer(flex: 6),
-              ElevatedButton(
-                onPressed: _signOut,
-                child: Text('サインアウト'),
-              ),
+              const Spacer(flex: 5),
             ],
           ),
         ),
