@@ -47,8 +47,8 @@ android {
         // versionName = flutterVersionName
 
         applicationId "com.watnowhackthon.app"
-        minSdkVersion 23  // ここを23に変更
-        targetSdkVersion 30
+        minSdkVersion 30  // ここを30に変更
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
     }

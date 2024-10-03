@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:watnowhackthon20240918/auth/sign_in_page.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
@@ -10,16 +11,14 @@ class UserScreen extends StatefulWidget {
   _UserScreenState createState() => _UserScreenState();
 }
 
-
 class _UserScreenState extends State<UserScreen> {
-
 // Firestoreにデータを追加する関数
-Future<void> addGoalToFirestore(String userId, String goal) async {
-  await FirebaseFirestore.instance.collection('users').doc(userId).set({
-    'uId': userId,
-    'goal': goal,
-  }, SetOptions(merge: true));
-}
+  Future<void> addGoalToFirestore(String userId, String goal) async {
+    await FirebaseFirestore.instance.collection('users').doc(userId).set({
+      'uId': userId,
+      'goal': goal,
+    }, SetOptions(merge: true));
+  }
 
   // インスタンスメンバー
   late final String userId;
@@ -31,11 +30,18 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
     super.initState();
     userId = FirebaseAuth.instance.currentUser!.uid;
     username = FirebaseAuth.instance.currentUser!.displayName ?? "Anonymous";
-    photoURL = FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
+    photoURL =
+        FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
 
-    goalController = TextEditingController(text: "",);
+    goalController = TextEditingController(
+      text: "",
+    );
 
-    FirebaseFirestore.instance.collection('users').doc(userId).get().then((doc) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get()
+        .then((doc) {
       if (doc.exists) {
         setState(() {
           goalController.text = doc.data()?['goal'] ?? "";
@@ -45,8 +51,17 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
   }
 
   Future<void> _signOut() async {
+    // GoogleSignInインスタンスを作成
+    final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+    // Firebaseサインアウト
     await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
+
+    // Googleサインアウト
+    await _googleSignIn.signOut();
+
+    // サインイン画面に遷移
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => SignInPage()),
     );
@@ -85,25 +100,22 @@ Future<void> addGoalToFirestore(String userId, String goal) async {
               ),
               const Spacer(flex: 1),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0), // 角を丸める半径を指定
-                        child: Container(
-                          width: 200,
-                          height: 50,
-                          color: const Color(0xB6DFFFFF),
-                        ),
+                  Stack(alignment: Alignment.center, children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0), // 角を丸める半径を指定
+                      child: Container(
+                        width: 200,
+                        height: 50,
+                        color: const Color(0xB6DFFFFF),
                       ),
-                      Text(
-                        username,
-                        style: const TextStyle(fontSize: 30),
-                      )
-                    ]
-                  ),
+                    ),
+                    Text(
+                      username,
+                      style: const TextStyle(fontSize: 30),
+                    )
+                  ]),
                 ],
               ),
               const SizedBox(height: 20), // スペースを追加

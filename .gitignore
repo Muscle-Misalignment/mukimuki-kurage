@@ -43,5 +43,8 @@ app.*.map.json
 /android/app/release
 
 firebase_options.dart
-google-services.json
+
 /.vscode
+GoogleService-Info.plist //iOS用
+google-services.json //Android用
+Info.plist
