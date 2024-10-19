@@ -55,18 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _getFeedCount();
     _getKurageLevel();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   String image_path;
-    //   if (kurageLevel == 1) {
-    //     image_path = "images/yowakurage.gif";
-    //   } else if (kurageLevel == 2) {
-    //     image_path = "images/nomalkurage.gif";
-    //   } else {
-    //     image_path = "images/mukikurage.gif";
-    //   }
-    //   kurageGrowthShowAlertDialog(context, image_path: image_path, content: "");
-    // });
-    // isGrowth = false;
   }
 
   Future<void> _getKurageLevel() async {
@@ -136,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
           kurageGrowthShowAlertDialog(context,
               image_path: image_path, content: "");
           print("isGrowth:$isGrowth");
+
         }
       });
     }
