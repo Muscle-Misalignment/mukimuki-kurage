@@ -24,6 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool showBubble = false; // クラゲの吹き出しを表示するかどうか
   double bubbleOpacity = 0.0; // 吹き出しの透明度
   String bubbleMessage = "ご飯ありがとう！"; // 吹き出しに表示するメッセージ
+  int kurageLevel = 1;
+  bool isGrowth = false;
+
+//クラゲの成長度（１が一番小さい）
+  int previouskurageLevel = 1;
 
   // ランダムに選ばれるジムのメッセージのリスト
   final List<String> gymMessages = [
@@ -49,6 +54,36 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getFeedCount();
+    _getKurageLevel();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   String image_path;
+    //   if (kurageLevel == 1) {
+    //     image_path = "images/yowakurage.gif";
+    //   } else if (kurageLevel == 2) {
+    //     image_path = "images/nomalkurage.gif";
+    //   } else {
+    //     image_path = "images/mukikurage.gif";
+    //   }
+    //   kurageGrowthShowAlertDialog(context, image_path: image_path, content: "");
+    // });
+    // isGrowth = false;
+  }
+
+  Future<void> _getKurageLevel() async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('communities')
+          .doc('9lDWqOZfKMrIXd05Z6Kv')
+          .get();
+      if (doc.exists) {
+        setState(() {
+          kurageLevel =
+              (doc.data() as Map<String, dynamic>)['kurage_level'] ?? 1;
+        });
+      }
+    } catch (e) {
+      print("kurage_levelの取得に失敗しました: $e");
+    }
   }
 
   Future<void> _getFeedCount() async {
@@ -68,13 +103,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getKurageImage() {
+    String kurageImagePath;
+
     if (feedCount >= 0 && feedCount <= 5) {
-      return 'images/yowakurage.gif';
+      kurageLevel = 1;
+      kurageImagePath = 'images/yowakurage.gif';
     } else if (feedCount >= 6 && feedCount <= 10) {
-      return 'images/nomalkurage.gif';
+      kurageLevel = 2;
+      kurageImagePath = 'images/nomalkurage.gif';
     } else {
-      return 'images/mukikurage.gif';
+      kurageLevel = 3;
+      kurageImagePath = 'images/mukikurage.gif';
     }
+    print("kurage_level:$kurageLevel");
+    print("previoskurage_level:$previouskurageLevel");
+
+    if (previouskurageLevel != kurageLevel) {
+      previouskurageLevel = kurageLevel;
+      isGrowth = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isGrowth == true) {
+          String image_path;
+          if (kurageLevel == 1) {
+            image_path = "images/yowakurage.gif";
+          } else if (kurageLevel == 2) {
+            image_path = "images/nomalkurage.gif";
+          } else {
+            image_path = "images/mukikurage.gif";
+          }
+          print("kurage_level:$kurageLevel");
+          print("previoskurage_level:$previouskurageLevel");
+          kurageGrowthShowAlertDialog(context,
+              image_path: image_path, content: "");
+          print("isGrowth:$isGrowth");
+        }
+      });
+    }
+    return kurageImagePath;
   }
 
   Future<void> _incrementFeedCount() async {
@@ -147,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return bubbleMessages[random.nextInt(bubbleMessages.length)];
   }
 
+  // タイムラインに投稿するイベントをfirestoreに格納
   Future<void> _postEvent() async {
     if (isPosting) return; // 投稿中なら処理をスキップ
 
@@ -172,6 +238,77 @@ class _HomeScreenState extends State<HomeScreen> {
         isPosting = false; // エラーが発生した場合もフラグをリセット
       });
     }
+  }
+
+  //くらげが成長したときに表示するダイアログ
+  Future kurageGrowthShowAlertDialog(
+    context, {
+    required String image_path,
+    required String content,
+  }) async {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Container(
+              width: 311.0,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 3),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Image.asset(
+                        image_path,
+                        height: 200, //写真の高さ指定
+                        fit: BoxFit.cover, //写真が周りに目一杯広がるようにする
+                      )),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      "くらげがレベル$kurageLevelに成長した！\nマッスルマッスル!",
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 24.0,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shadowColor: Colors.grey,
+                          elevation: 5,
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                          shape: const StadiumBorder(),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 36),
+                          child: Text('OK'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 24.0,
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   @override
