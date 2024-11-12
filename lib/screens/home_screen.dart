@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // ダイアログを表示
     await showDialog(
       context: context,
-      barrierDismissible: false, // 外側タップで閉じないようにする
+      barrierDismissible: true, // 外側タップで閉じる
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             width: 311.0, // ダイアログの横幅を指定
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blueAccent, width: 3),
+              border: Border.all(color: Color(0xFFFFDEA5), width: 3),
               borderRadius: BorderRadius.circular(10.0),
             ),
             child: Column(
@@ -239,29 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(
-                          width: 1.0,
-                          color: Colors.blueAccent,
-                        ),
-                        shadowColor: Colors.grey,
-                        elevation: 5,
-                        shape: const StadiumBorder(),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // キャンセルでダイアログを閉じる
-                      },
-                      child: const Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-                        child: Text('キャンセル'),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.grey.shade500,
+                        backgroundColor: Color(0xFFFFDEA5),
                         shadowColor: Colors.grey,
                         elevation: 5,
                         shape: const StadiumBorder(),
