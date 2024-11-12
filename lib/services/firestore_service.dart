@@ -6,7 +6,6 @@ class FirestoreService {
 
   // Firestoreにイベントを追加する関数
   Future<void> addEvent(String uid, String username, String message) async {
-    // 'add'メソッドを使用して新しいドキュメントを作成
     await timelineCollection.add({
       'uid': uid,
       'username': username,
@@ -15,7 +14,18 @@ class FirestoreService {
     });
   }
 
-  // Firestoreからタイムラインのデータをリアルタイムで取得する関数
+  // メモ付きのジムイベントをFirestoreに追加する関数
+  Future<void> addEventWithMemo(
+      String uid, String username, String message, String gymmemo) async {
+    await timelineCollection.add({
+      'uid': uid,
+      'username': username,
+      'message': message,
+      'gymmemo': gymmemo, // gymmemoフィールドを追加
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
   Stream<QuerySnapshot> getTimeline() {
     return timelineCollection
         .orderBy('timestamp', descending: false)

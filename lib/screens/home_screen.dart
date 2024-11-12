@@ -18,23 +18,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final String username =
       FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
 
-  bool hasFood = false;
   int feedCount = 0;
   bool isPosting = false; // 投稿中かどうかのフラグ
   bool showBubble = false; // クラゲの吹き出しを表示するかどうか
   double bubbleOpacity = 0.0; // 吹き出しの透明度
   String bubbleMessage = "ご飯ありがとう！"; // 吹き出しに表示するメッセージ
+  int kurageLevel = 1;
+  bool isGrowth = false;
+
+//クラゲの成長度（１が一番小さい）
+  int previouskurageLevel = 1;
 
   // ランダムに選ばれるジムのメッセージのリスト
-  final List<String> gymMessages = [
-    "ジムでムキｯ",
-    "肩がメロン！",
-    "ナイスバルク！",
-    "ぷるぷるしてる！",
-    "パンプがすごい！",
-    "プロテインが体にしみる！",
-    "筋肉がよろこんでる！"
-  ];
+  final List<String> gymMessages = ["ジムに行ったゾ！"];
 
   // ランダムに選ばれる吹き出しのメッセージのリスト
   final List<String> bubbleMessages = [
@@ -49,6 +45,24 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getFeedCount();
+    _getKurageLevel();
+  }
+
+  Future<void> _getKurageLevel() async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('communities')
+          .doc('9lDWqOZfKMrIXd05Z6Kv')
+          .get();
+      if (doc.exists) {
+        setState(() {
+          kurageLevel =
+              (doc.data() as Map<String, dynamic>)['kurage_level'] ?? 1;
+        });
+      }
+    } catch (e) {
+      print("kurage_levelの取得に失敗しました: $e");
+    }
   }
 
   Future<void> _getFeedCount() async {
@@ -68,13 +82,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getKurageImage() {
+    String kurageImagePath;
+
     if (feedCount >= 0 && feedCount <= 5) {
-      return 'images/yowakurage.gif';
+      kurageLevel = 1;
+      kurageImagePath = 'images/yowakurage.gif';
     } else if (feedCount >= 6 && feedCount <= 10) {
-      return 'images/nomalkurage.gif';
+      kurageLevel = 2;
+      kurageImagePath = 'images/nomalkurage.gif';
     } else {
-      return 'images/mukikurage.gif';
+      kurageLevel = 3;
+      kurageImagePath = 'images/mukikurage.gif';
     }
+    print("kurage_level:$kurageLevel");
+    print("previoskurage_level:$previouskurageLevel");
+
+    if (previouskurageLevel != kurageLevel) {
+      previouskurageLevel = kurageLevel;
+      isGrowth = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isGrowth == true) {
+          String image_path;
+          if (kurageLevel == 1) {
+            image_path = "images/yowakurage.gif";
+          } else if (kurageLevel == 2) {
+            image_path = "images/nomalkurage.gif";
+          } else {
+            image_path = "images/mukikurage.gif";
+          }
+          print("kurage_level:$kurageLevel");
+          print("previoskurage_level:$previouskurageLevel");
+          kurageGrowthShowAlertDialog(context,
+              image_path: image_path, content: "");
+          print("isGrowth:$isGrowth");
+        }
+      });
+    }
+    return kurageImagePath;
   }
 
   Future<void> _incrementFeedCount() async {
@@ -106,17 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _feedKurage() async {
-    if (hasFood) {
-      setState(() {
-        hasFood = false;
-        // ランダムな吹き出しメッセージを選択
-        bubbleMessage = _getRandomBubbleMessage();
-      });
-      // 吹き出しの透明度を変更して表示
-      _showKurageBubble();
+    bubbleMessage = _getRandomBubbleMessage();
+    _showKurageBubble();
 
-      await _incrementFeedCount();
-    }
+    await _incrementFeedCount();
   }
 
   // 吹き出しの透明度を変更して表示・非表示にする処理
@@ -147,22 +184,103 @@ class _HomeScreenState extends State<HomeScreen> {
     return bubbleMessages[random.nextInt(bubbleMessages.length)];
   }
 
-  Future<void> _postEvent() async {
+  void _showGymMemoDialog() async {
+    String gymMemo = '';
+
+    // ダイアログを表示
+    await showDialog(
+      context: context,
+      barrierDismissible: true, // 外側タップで閉じる
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Container(
+            width: 311.0, // ダイアログの横幅を指定
+            decoration: BoxDecoration(
+              border: Border.all(color: Color(0xFFFFDEA5), width: 3),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 子要素に合わせた縦幅
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Text(
+                    'ひとこと追加', // ダイアログタイトル
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: TextField(
+                    onChanged: (value) {
+                      gymMemo = value; // ユーザーが入力したメモを保持
+                    },
+                    decoration: InputDecoration(hintText: "例) 脚トレ最高！"),
+                    maxLines: 3,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.grey.shade500,
+                        backgroundColor: Color(0xFFFFDEA5),
+                        shadowColor: Colors.grey,
+                        elevation: 5,
+                        shape: const StadiumBorder(),
+                      ),
+                      onPressed: () async {
+                        if (gymMemo.isNotEmpty) {
+                          // メモが入力されていれば、Firestoreに保存
+                          await _postEventWithMemo(gymMemo);
+                          Navigator.of(context).pop(); // ダイアログを閉じる
+                          _feedKurage();
+                        }
+                      },
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                        child: Text('完了'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // タイムラインに投稿するイベントをfirestoreに格納
+  // メモを追加してイベントをFirestoreに保存
+  Future<void> _postEventWithMemo(String gymMemo) async {
     if (isPosting) return; // 投稿中なら処理をスキップ
 
     setState(() {
       isPosting = true; // 投稿中のフラグを立てる
     });
 
-    // ランダムなジムのメッセージを取得
+    // ランダムなジムメッセージを取得
     String message = _getRandomGymMessage();
 
     try {
-      await _firestoreService.addEvent(userId, username, message);
+      // Firestoreにメモを含めてイベントを追加
+      await _firestoreService.addEventWithMemo(
+          userId, username, message, gymMemo);
       print("Firestoreにイベントを追加しました。");
 
       setState(() {
-        hasFood = true;
         isPosting = false; // 投稿が終わったらフラグをリセット
       });
     } catch (error) {
@@ -172,6 +290,77 @@ class _HomeScreenState extends State<HomeScreen> {
         isPosting = false; // エラーが発生した場合もフラグをリセット
       });
     }
+  }
+
+  //くらげが成長したときに表示するダイアログ
+  Future kurageGrowthShowAlertDialog(
+    context, {
+    required String image_path,
+    required String content,
+  }) async {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Container(
+              width: 311.0,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 3),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Image.asset(
+                        image_path,
+                        height: 200, //写真の高さ指定
+                        fit: BoxFit.cover, //写真が周りに目一杯広がるようにする
+                      )),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      "くらげがレベル$kurageLevelに成長した！\nマッスルマッスル!",
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 24.0,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shadowColor: Colors.grey,
+                          elevation: 5,
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                          shape: const StadiumBorder(),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 36),
+                          child: Text('OK'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 24.0,
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   @override
@@ -232,28 +421,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: TimelineWidget(displayName: username),
             ),
           ),
-          Positioned(
-            bottom: 120,
-            left: 10,
-            child: ElevatedButton(
-              onPressed: hasFood ? _feedKurage : null,
-              child: Text(
-                '餌をあげる',
-                style: TextStyle(
-                  color: Color(0xFF696969), // テキストの色をグレーに変更
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    hasFood ? Color(0xFFFFDEA5) : Colors.grey, // ボタンの色を変更
-              ),
-            ),
-          ),
+
           Positioned(
             bottom: 60,
             left: 10,
             child: ElevatedButton(
-              onPressed: isPosting ? null : _postEvent, // 投稿中は無効化
+              onPressed: isPosting ? null : _showGymMemoDialog, // 投稿中は無効化
               child: isPosting
                   ? CircularProgressIndicator()
                   : Text(

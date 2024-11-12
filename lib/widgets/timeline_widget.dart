@@ -91,6 +91,7 @@ class _TimelineWidgetState extends State<TimelineWidget>
             username: event.username,
             timestamp: event.timestamp,
             isSentByMe: event.username == widget.displayName,
+            gymmemo: event.gymmemo,
           ),
         );
       },
@@ -103,12 +104,14 @@ class ChatBubble extends StatelessWidget {
   final String username;
   final DateTime timestamp;
   final bool isSentByMe;
+  final String gymmemo;
 
   const ChatBubble({
     required this.message,
     required this.username,
     required this.timestamp,
     required this.isSentByMe,
+    required this.gymmemo,
   });
 
   @override
@@ -154,7 +157,7 @@ class ChatBubble extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      username,
+                      "${username}が",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 8, // サイズを少し大きく
@@ -167,6 +170,17 @@ class ChatBubble extends StatelessWidget {
                         fontSize: 10, // メッセージのフォントサイズ
                       ),
                     ),
+                    if (gymmemo.isNotEmpty) ...[
+                      const SizedBox(height: 5), // メモとメッセージの間に隙間を追加
+                      Text(
+                        gymmemo,
+                        style: const TextStyle(
+                          fontSize: 9, // gymmemoのフォントサイズ
+                          fontStyle: FontStyle.italic, // 斜体で表示
+                          color: Colors.grey, // メモの文字色
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
