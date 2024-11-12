@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final String username =
       FirebaseAuth.instance.currentUser!.displayName ?? "ユーザーA";
 
-  bool hasFood = false;
   int feedCount = 0;
   bool isPosting = false; // 投稿中かどうかのフラグ
   bool showBubble = false; // クラゲの吹き出しを表示するかどうか
@@ -151,17 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _feedKurage() async {
-    if (hasFood) {
-      setState(() {
-        hasFood = false;
-        // ランダムな吹き出しメッセージを選択
-        bubbleMessage = _getRandomBubbleMessage();
-      });
-      // 吹き出しの透明度を変更して表示
-      _showKurageBubble();
+    bubbleMessage = _getRandomBubbleMessage();
+    _showKurageBubble();
 
-      await _incrementFeedCount();
-    }
+    await _incrementFeedCount();
   }
 
   // 吹き出しの透明度を変更して表示・非表示にする処理
@@ -250,6 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           // メモが入力されていれば、Firestoreに保存
                           await _postEventWithMemo(gymMemo);
                           Navigator.of(context).pop(); // ダイアログを閉じる
+                          _feedKurage();
                         }
                       },
                       child: const Padding(
@@ -288,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Firestoreにイベントを追加しました。");
 
       setState(() {
-        hasFood = true;
         isPosting = false; // 投稿が終わったらフラグをリセット
       });
     } catch (error) {
@@ -429,23 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: TimelineWidget(displayName: username),
             ),
           ),
-          Positioned(
-            bottom: 120,
-            left: 10,
-            child: ElevatedButton(
-              onPressed: hasFood ? _feedKurage : null,
-              child: Text(
-                '餌をあげる',
-                style: TextStyle(
-                  color: Color(0xFF696969), // テキストの色をグレーに変更
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    hasFood ? Color(0xFFFFDEA5) : Colors.grey, // ボタンの色を変更
-              ),
-            ),
-          ),
+
           Positioned(
             bottom: 60,
             left: 10,
