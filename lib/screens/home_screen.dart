@@ -124,7 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
           kurageGrowthShowAlertDialog(context,
               image_path: image_path, content: "");
           print("isGrowth:$isGrowth");
-
         }
       });
     }
