@@ -5,25 +5,27 @@ class TimelineEvent {
   final String username;
   final String message;
   final DateTime timestamp;
+  final String gymmemo;
 
   TimelineEvent({
     required this.uid,
     required this.username,
     required this.message,
     required this.timestamp,
+    required this.gymmemo,
   });
 
   factory TimelineEvent.fromMap(Map<String, dynamic> data) {
-    // 'timestamp' フィールドが存在し、nullでないことを確認
     final timestamp = data['timestamp'] != null
         ? (data['timestamp'] as Timestamp).toDate()
-        : DateTime.now(); // nullの場合は現在の日時を使用
+        : DateTime.now();
 
     return TimelineEvent(
-      uid: data['uid']?.toString() ?? '', // 'uid' を String に変換
-      username: data['username']?.toString() ?? '', // 'username' を String に変換
-      message: data['message']?.toString() ?? '', // 'message' を String に変換
+      uid: data['uid']?.toString() ?? '',
+      username: data['username']?.toString() ?? '',
+      message: data['message']?.toString() ?? '',
       timestamp: timestamp,
+      gymmemo: data['gymmemo']?.toString() ?? '', // gymmemoを追加
     );
   }
 }

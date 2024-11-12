@@ -31,15 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int previouskurageLevel = 1;
 
   // ランダムに選ばれるジムのメッセージのリスト
-  final List<String> gymMessages = [
-    "ジムでムキｯ",
-    "肩がメロン！",
-    "ナイスバルク！",
-    "ぷるぷるしてる！",
-    "パンプがすごい！",
-    "プロテインが体にしみる！",
-    "筋肉がよろこんでる！"
-  ];
+  final List<String> gymMessages = ["ジムに行ったゾ！"];
 
   // ランダムに選ばれる吹き出しのメッセージのリスト
   final List<String> bubbleMessages = [
@@ -200,19 +192,120 @@ class _HomeScreenState extends State<HomeScreen> {
     return bubbleMessages[random.nextInt(bubbleMessages.length)];
   }
 
+  void _showGymMemoDialog() async {
+    String gymMemo = '';
+
+    // ダイアログを表示
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // 外側タップで閉じないようにする
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Container(
+            width: 311.0, // ダイアログの横幅を指定
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blueAccent, width: 3),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 子要素に合わせた縦幅
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Text(
+                    'ひとこと追加', // ダイアログタイトル
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: TextField(
+                    onChanged: (value) {
+                      gymMemo = value; // ユーザーが入力したメモを保持
+                    },
+                    decoration: InputDecoration(hintText: "例) 脚トレ最高！"),
+                    maxLines: 3,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(
+                          width: 1.0,
+                          color: Colors.blueAccent,
+                        ),
+                        shadowColor: Colors.grey,
+                        elevation: 5,
+                        shape: const StadiumBorder(),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // キャンセルでダイアログを閉じる
+                      },
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                        child: Text('キャンセル'),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blueAccent,
+                        shadowColor: Colors.grey,
+                        elevation: 5,
+                        shape: const StadiumBorder(),
+                      ),
+                      onPressed: () async {
+                        if (gymMemo.isNotEmpty) {
+                          // メモが入力されていれば、Firestoreに保存
+                          await _postEventWithMemo(gymMemo);
+                          Navigator.of(context).pop(); // ダイアログを閉じる
+                        }
+                      },
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                        child: Text('完了'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // タイムラインに投稿するイベントをfirestoreに格納
-  Future<void> _postEvent() async {
+  // メモを追加してイベントをFirestoreに保存
+  Future<void> _postEventWithMemo(String gymMemo) async {
     if (isPosting) return; // 投稿中なら処理をスキップ
 
     setState(() {
       isPosting = true; // 投稿中のフラグを立てる
     });
 
-    // ランダムなジムのメッセージを取得
+    // ランダムなジムメッセージを取得
     String message = _getRandomGymMessage();
 
     try {
-      await _firestoreService.addEvent(userId, username, message);
+      // Firestoreにメモを含めてイベントを追加
+      await _firestoreService.addEventWithMemo(
+          userId, username, message, gymMemo);
       print("Firestoreにイベントを追加しました。");
 
       setState(() {
@@ -378,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: 60,
             left: 10,
             child: ElevatedButton(
-              onPressed: isPosting ? null : _postEvent, // 投稿中は無効化
+              onPressed: isPosting ? null : _showGymMemoDialog, // 投稿中は無効化
               child: isPosting
                   ? CircularProgressIndicator()
                   : Text(
