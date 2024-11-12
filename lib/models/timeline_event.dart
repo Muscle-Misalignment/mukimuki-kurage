@@ -6,6 +6,7 @@ class TimelineEvent {
   final String message;
   final DateTime timestamp;
   final String gymmemo;
+  final List<String> goodbutton; // いいねボタンを押したユーザーのUIDリスト
 
   TimelineEvent({
     required this.uid,
@@ -13,6 +14,7 @@ class TimelineEvent {
     required this.message,
     required this.timestamp,
     required this.gymmemo,
+    this.goodbutton = const [], // 初期値を空のリストに設定
   });
 
   factory TimelineEvent.fromMap(Map<String, dynamic> data) {
@@ -25,7 +27,9 @@ class TimelineEvent {
       username: data['username']?.toString() ?? '',
       message: data['message']?.toString() ?? '',
       timestamp: timestamp,
-      gymmemo: data['gymmemo']?.toString() ?? '', // gymmemoを追加
+      gymmemo: data['gymmemo']?.toString() ?? '',
+      goodbutton:
+          List<String>.from(data['goodbutton'] ?? []), // goodbuttonをリストに変換
     );
   }
 }
