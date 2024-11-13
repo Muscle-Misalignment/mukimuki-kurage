@@ -216,7 +216,26 @@ class ChatBubble extends StatelessWidget {
                         ],
                       ),
                       onPressed: () async {
-                        // いいね処理の実装 (後述)
+                        // いいね処理
+                        // final userId = FirebaseAuth.instance.currentUser!.uid;
+                        // final newGoodbutton = [...goodbutton];
+
+                        // if (newGoodbutton.contains(userId)) {
+                        //   // いいねを取り消す
+                        //   newGoodbutton.remove(userId);
+                        // } else {
+                        //   // いいねする
+                        //   newGoodbutton.add(userId);
+                        // }
+
+                        // try {
+                        //   await FirebaseFirestore.instance
+                        //       .collection('timeline')
+                        //       .doc(documentId) // 対象のドキュメントID
+                        //       .update({'goodbutton': newGoodbutton});
+                        // } catch (e) {
+                        //   print('いいねの更新に失敗しました: $e');
+                        // }
                       },
                     ),
                   ]),
