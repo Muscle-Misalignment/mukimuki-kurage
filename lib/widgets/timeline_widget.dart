@@ -216,7 +216,7 @@ class ChatBubble extends StatelessWidget {
                         ],
                       ),
                       onPressed: () async {
-                        // いいね処理
+                        // //いいね処理
                         // final userId = FirebaseAuth.instance.currentUser!.uid;
                         // final newGoodbutton = [...goodbutton];
 
