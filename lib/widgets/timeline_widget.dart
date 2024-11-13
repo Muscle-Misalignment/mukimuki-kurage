@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../models/timeline_event.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TimelineWidget extends StatefulWidget {
   final FirestoreService _firestoreService = FirestoreService();
@@ -92,6 +93,7 @@ class _TimelineWidgetState extends State<TimelineWidget>
             timestamp: event.timestamp,
             isSentByMe: event.username == widget.displayName,
             gymmemo: event.gymmemo,
+            goodbutton: event.goodbutton,
           ),
         );
       },
@@ -105,6 +107,7 @@ class ChatBubble extends StatelessWidget {
   final DateTime timestamp;
   final bool isSentByMe;
   final String gymmemo;
+  final List<String> goodbutton;
 
   const ChatBubble({
     required this.message,
@@ -112,6 +115,7 @@ class ChatBubble extends StatelessWidget {
     required this.timestamp,
     required this.isSentByMe,
     required this.gymmemo,
+    required this.goodbutton,
   });
 
   @override
@@ -184,15 +188,49 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 1), // メッセージと時刻の間のスペースを1に調整
-              // 時刻部分
-              Text(
-                formattedTime,
-                style: TextStyle(
-                  fontSize: 8, // 時刻のフォントサイズ
-                  color: Colors.grey, // 時刻の色
-                ),
-              ),
+              Column(
+                children: [
+                  Row(children: [
+                    IconButton(
+                      icon: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: goodbutton.contains(
+                                    FirebaseAuth.instance.currentUser!.uid)
+                                ? Colors.pink
+                                : Colors.grey,
+                          ),
+                          Positioned(
+                            right: 7,
+                            top: 0,
+                            child: Text(
+                              '${goodbutton.length}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white, // ハートの色に合わせて調整
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      onPressed: () async {
+                        // いいね処理の実装 (後述)
+                      },
+                    ),
+                  ]),
+
+                  // 時刻部分
+                  Text(
+                    formattedTime,
+                    style: TextStyle(
+                      fontSize: 8, // 時刻のフォントサイズ
+                      color: Colors.grey, // 時刻の色
+                    ),
+                  ),
+                ],
+              )
             ],
           ),
         ),

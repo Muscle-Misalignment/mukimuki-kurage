@@ -23,6 +23,7 @@ class FirestoreService {
       'message': message,
       'gymmemo': gymmemo, // gymmemoフィールドを追加
       'timestamp': FieldValue.serverTimestamp(),
+      'goodbutton': [], // goodbuttonフィールドを追加
     });
   }
 
