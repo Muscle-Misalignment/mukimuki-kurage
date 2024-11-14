@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../models/timeline_event.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TimelineWidget extends StatefulWidget {
   final FirestoreService _firestoreService = FirestoreService();
@@ -92,6 +93,8 @@ class _TimelineWidgetState extends State<TimelineWidget>
             timestamp: event.timestamp,
             isSentByMe: event.username == widget.displayName,
             gymmemo: event.gymmemo,
+            goodbutton: event.goodbutton,
+            documentId: event.documentId,
           ),
         );
       },
@@ -99,12 +102,14 @@ class _TimelineWidgetState extends State<TimelineWidget>
   }
 }
 
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends StatefulWidget {
   final String message;
   final String username;
   final DateTime timestamp;
   final bool isSentByMe;
   final String gymmemo;
+  final List<String> goodbutton;
+  final String documentId;
 
   const ChatBubble({
     required this.message,
@@ -112,12 +117,28 @@ class ChatBubble extends StatelessWidget {
     required this.timestamp,
     required this.isSentByMe,
     required this.gymmemo,
+    required this.goodbutton,
+    required this.documentId,
   });
+
+  @override
+  _ChatBubbleState createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<ChatBubble> {
+  late List<String> goodbutton;
+
+  @override
+  void initState() {
+    super.initState();
+    // 初期化時にgoodbuttonをコピーして、状態管理できるようにする
+    goodbutton = List.from(widget.goodbutton);
+  }
 
   @override
   Widget build(BuildContext context) {
     // 日時をフォーマットする
-    String formattedTime = DateFormat('HH:mm').format(timestamp);
+    String formattedTime = DateFormat('HH:mm').format(widget.timestamp);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -126,21 +147,22 @@ class ChatBubble extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isSentByMe
+            color: widget.isSentByMe
                 ? Color.fromARGB(255, 255, 255, 255).withOpacity(0.8)
                 : Color(0xFFFFDEA5).withOpacity(0.8),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(12),
-              topRight: isSentByMe ? Radius.zero : const Radius.circular(12),
-              bottomLeft: isSentByMe
+              topRight:
+                  widget.isSentByMe ? Radius.zero : const Radius.circular(12),
+              bottomLeft: widget.isSentByMe
                   ? const Radius.circular(12)
                   : const Radius.circular(12),
-              bottomRight: isSentByMe
+              bottomRight: widget.isSentByMe
                   ? const Radius.circular(12)
                   : const Radius.circular(12),
             ),
             // 自分の投稿にだけ枠線を追加
-            border: isSentByMe
+            border: widget.isSentByMe
                 ? Border.all(color: Color(0xFFFFDEA5), width: 2) // 枠線の色と幅
                 : null, // 他人の投稿には枠線を付けない
           ),
@@ -157,7 +179,7 @@ class ChatBubble extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${username}が",
+                      "${widget.username}が",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 8, // サイズを少し大きく
@@ -165,15 +187,15 @@ class ChatBubble extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      message,
+                      widget.message,
                       style: const TextStyle(
                         fontSize: 10, // メッセージのフォントサイズ
                       ),
                     ),
-                    if (gymmemo.isNotEmpty) ...[
+                    if (widget.gymmemo.isNotEmpty) ...[
                       const SizedBox(height: 5), // メモとメッセージの間に隙間を追加
                       Text(
-                        gymmemo,
+                        widget.gymmemo,
                         style: const TextStyle(
                           fontSize: 9, // gymmemoのフォントサイズ
                           fontStyle: FontStyle.italic, // 斜体で表示
@@ -184,15 +206,75 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 1), // メッセージと時刻の間のスペースを1に調整
-              // 時刻部分
-              Text(
-                formattedTime,
-                style: TextStyle(
-                  fontSize: 8, // 時刻のフォントサイズ
-                  color: Colors.grey, // 時刻の色
-                ),
-              ),
+              Column(
+                children: [
+                  Row(children: [
+                    IconButton(
+                      icon: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: goodbutton.contains(
+                                    FirebaseAuth.instance.currentUser!.uid)
+                                ? Colors.pink
+                                : Colors.grey,
+                          ),
+                          Positioned(
+                            right: 7,
+                            top: 0,
+                            child: Text(
+                              '${goodbutton.length}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white, // ハートの色に合わせて調整
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      onPressed: () async {
+                        final userId = FirebaseAuth.instance.currentUser!.uid;
+                        final isLiked = goodbutton.contains(userId);
+
+                        // いいねの状態を変更
+                        if (isLiked) {
+                          setState(() {
+                            goodbutton.remove(userId);
+                          });
+                        } else {
+                          setState(() {
+                            goodbutton.add(userId);
+                          });
+                        }
+
+                        try {
+                          await FirebaseFirestore.instance
+                              .collection('timeline')
+                              .doc(widget.documentId)
+                              .update({
+                            'goodbutton': isLiked
+                                ? FieldValue.arrayRemove([userId])
+                                : FieldValue.arrayUnion([userId])
+                          });
+                        } catch (e) {
+                          // エラー処理
+                          print("Error updating goodbutton: $e");
+                        }
+                      },
+                    ),
+                  ]),
+
+                  // 時刻部分
+                  Text(
+                    formattedTime,
+                    style: TextStyle(
+                      fontSize: 8, // 時刻のフォントサイズ
+                      color: Colors.grey, // 時刻の色
+                    ),
+                  ),
+                ],
+              )
             ],
           ),
         ),

@@ -17,14 +17,30 @@ class FirestoreService {
   // メモ付きのジムイベントをFirestoreに追加する関数
   Future<void> addEventWithMemo(
       String uid, String username, String message, String gymmemo) async {
-    await timelineCollection.add({
+    final room = FirebaseFirestore.instance.collection('timeline').doc();
+    await room.set({
       'uid': uid,
       'username': username,
       'message': message,
       'gymmemo': gymmemo, // gymmemoフィールドを追加
       'timestamp': FieldValue.serverTimestamp(),
+      'goodbutton': [], // goodbuttonフィールドを追加,
+      'document': room.id,
     });
   }
+//final room = FirebaseFirestore.instance.collection('room').doc();
+
+  // room.set({
+  //   'URL': url,
+  //   'roomTitle': roomTitle,
+  //   'roomCategory': roomCategory,
+  //   'roomAtmosphere': roomAtmosphere,
+  //   'roomDescription': roomDescription,
+  //   'roomMaster': roomMasterName,
+  //   'created_at': DateTime.now(),
+  //   'roomCount': 1,
+  //   'documentID': room.id
+  // });
 
   Stream<QuerySnapshot> getTimeline() {
     return timelineCollection
