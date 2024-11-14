@@ -9,15 +9,15 @@ class TimelineEvent {
   final List<String> goodbutton; // いいねボタンを押したユーザーのUIDリスト
   final String documentId; // 追加: ドキュメントID
 
-  TimelineEvent({
-    required this.uid,
-    required this.username,
-    required this.message,
-    required this.timestamp,
-    required this.gymmemo,
-    this.goodbutton = const [], // 初期値を空のリストに設定
-    required this.documentId,
-  });
+  TimelineEvent(
+      {required this.uid,
+      required this.username,
+      required this.message,
+      required this.timestamp,
+      required this.gymmemo,
+      this.goodbutton = const [], // 初期値を空のリストに設定
+      required this.documentId,
+      bool});
 
   factory TimelineEvent.fromMap(Map<String, dynamic> data) {
     final timestamp = data['timestamp'] != null
