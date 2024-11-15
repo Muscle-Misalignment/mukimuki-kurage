@@ -51,11 +51,11 @@ class _UserlistScreenState extends State<UserlistScreen> {
                     itemBuilder: (context, index) {
                       final user = users[index];
                       return Card(
-                        color: const Color(0xB6DFFFFF),
+                        color: Colors.white,
                         margin: const EdgeInsets.only(
-                            top: 20, left: 10, right: 10, bottom: 10),
+                            top: 5, left: 10, right: 10, bottom: 5),
                         elevation: 8, // 影の離れ具合
-                        shadowColor: Colors.black, // 影の色
+                        shadowColor: Colors.grey, // 影の色
                         shape: RoundedRectangleBorder(
                           // 枠線を変更できる
                           borderRadius: BorderRadius.circular(10),

@@ -24,18 +24,27 @@ class _UserScreenState extends State<UserScreen> {
   late final String userId;
   late final String username;
   late final String photoURL;
-  late final TextEditingController goalController;
+  late final String sex;
+  late final num age;
+  late final String goal;
+  late final String mygym;
+  late final String mukimukiage;
+  late final String community;
+  late final String onecomment;
+
+  // late final TextEditingController sexController;
+  // late final TextEditingController ageController;
+  // late final TextEditingController mygymController;
+  // late final TextEditingController mukimukiageController;
+  // late final TextEditingController goalController;
   @override
   void initState() {
     super.initState();
     userId = FirebaseAuth.instance.currentUser!.uid;
     username = FirebaseAuth.instance.currentUser!.displayName ?? "Anonymous";
+
     photoURL =
         FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
-
-    goalController = TextEditingController(
-      text: "",
-    );
 
     FirebaseFirestore.instance
         .collection('users')
@@ -44,7 +53,13 @@ class _UserScreenState extends State<UserScreen> {
         .then((doc) {
       if (doc.exists) {
         setState(() {
-          goalController.text = doc.data()?['goal'] ?? "";
+          sex = doc.data()?['sex'] ?? "";
+          goal = doc.data()?['goal'] ?? "";
+          age = doc.data()?['age'] ?? "";
+          mygym = doc.data()?['mygym'] ?? "";
+          mukimukiage = doc.data()?['mukimukiage'] ?? "";
+          community = doc.data()?['community'] ?? "";
+          onecomment = doc.data()?['onecomment'] ?? "";
         });
       }
     });
@@ -70,75 +85,109 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Stack(
-      children: [
-        Positioned.fill(
-          child: Image.asset(
-            'images/sea.jpg',
-            fit: BoxFit.cover,
-          ),
+        appBar: AppBar(
+          title: const Text('ユーザー情報'),
+          backgroundColor: Color(0xFFFFDEA5),
+          centerTitle: true,
         ),
-        Center(
-          child: Column(
-            children: [
-              const Spacer(flex: 1),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: _signOut,
-                  child: Text('サインアウト'),
-                ),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'images/sea.jpg',
+                fit: BoxFit.cover,
               ),
-              const Spacer(flex: 1),
-              Align(
-                alignment: const Alignment(0.0, 0.0),
-                child: CircleAvatar(
-                  radius: 100,
-                  backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage(photoURL),
-                ),
-              ),
-              const Spacer(flex: 1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            Center(
+              child: Column(
                 children: [
-                  Stack(alignment: Alignment.center, children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0), // 角を丸める半径を指定
-                      child: Container(
-                        width: 200,
-                        height: 50,
-                        color: const Color(0xB6DFFFFF),
+                  const Spacer(flex: 1),
+                  // Align(
+                  //   alignment: Alignment.centerRight,
+                  //   child: ElevatedButton(
+                  //     onPressed: _signOut,
+                  //     child: Text('サインアウト'),
+                  //   ),
+                  // ),
+                  const Spacer(flex: 1),
+                  Card(
+                    margin: EdgeInsets.all(10),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Align(
+                            alignment: const Alignment(0.0, 0.0),
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.white,
+                              backgroundImage: NetworkImage(photoURL),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Text(
+                                username,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow:
+                                    TextOverflow.ellipsis, // 名前が長すぎる場合に省略する
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                     ),
-                    Text(
-                      username,
-                      style: const TextStyle(fontSize: 30),
-                    )
-                  ]),
+                  ),
+
+                  //ユーザーの詳細情報を表示
+                  const SizedBox(height: 5), // スペースを追加
+                  Card(
+                    margin: EdgeInsets.all(10),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            username,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis, // 名前が長すぎる場合に省略する
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          title: const Text('性別:'),
+                          subtitle: Text(sex),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          title: const Text('年齢'),
+                        ),
+                      ]),
+                    ),
+                  ),
+
+                  const Spacer(flex: 5),
                 ],
               ),
-              const SizedBox(height: 20), // スペースを追加
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: TextField(
-                  controller: goalController,
-                  decoration: const InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(),
-                    labelText: '目標',
-                  ),
-                  onSubmitted: (value) {
-                    addGoalToFirestore(userId, value);
-                  },
-                ),
-              ),
-              const Spacer(flex: 5),
-            ],
-          ),
-        ),
-      ],
-    ));
+            ),
+          ],
+        ));
   }
 }
