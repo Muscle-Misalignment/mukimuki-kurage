@@ -81,7 +81,7 @@ class _UserScreenState extends State<UserScreen> {
       appBar: AppBar(
         title: const Text('ユーザー情報'),
         backgroundColor: Color(0xFFFFDEA5),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Stack(
         children: [
