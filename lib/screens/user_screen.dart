@@ -12,7 +12,7 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
-// Firestoreにデータを追加する関数
+  // Firestoreにデータを追加する関数
   Future<void> addGoalToFirestore(String userId, String goal) async {
     await FirebaseFirestore.instance.collection('users').doc(userId).set({
       'uId': userId,
@@ -24,28 +24,25 @@ class _UserScreenState extends State<UserScreen> {
   late final String userId;
   late final String username;
   late final String photoURL;
-  late final String sex;
-  late final num age;
-  late final String goal;
-  late final String mygym;
-  late final String mukimukiage;
-  late final String community;
-  late final String onecomment;
+  String sex = ''; // nullable型で初期化
+  int age = 0; // 初期値を設定
+  String goal = '';
+  String mygym = '';
+  String mukimukiage = '';
+  String community = '';
+  String onecomment = '';
+  String trainingHistory = ''; // トレーニング歴
+  bool isLoading = true; // データ取得中フラグ
 
-  // late final TextEditingController sexController;
-  // late final TextEditingController ageController;
-  // late final TextEditingController mygymController;
-  // late final TextEditingController mukimukiageController;
-  // late final TextEditingController goalController;
   @override
   void initState() {
     super.initState();
     userId = FirebaseAuth.instance.currentUser!.uid;
     username = FirebaseAuth.instance.currentUser!.displayName ?? "Anonymous";
-
     photoURL =
         FirebaseAuth.instance.currentUser!.photoURL ?? "https://example.com";
 
+    // Firestoreからデータを取得
     FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -53,29 +50,25 @@ class _UserScreenState extends State<UserScreen> {
         .then((doc) {
       if (doc.exists) {
         setState(() {
-          sex = doc.data()?['sex'] ?? "";
+          sex = doc.data()?['sex'] ?? 'Not Specified';
           goal = doc.data()?['goal'] ?? "";
-          age = doc.data()?['age'] ?? "";
+          age = doc.data()?['age'] ?? 0;
           mygym = doc.data()?['mygym'] ?? "";
           mukimukiage = doc.data()?['mukimukiage'] ?? "";
           community = doc.data()?['community'] ?? "";
           onecomment = doc.data()?['onecomment'] ?? "";
+          trainingHistory = doc.data()?['trainingHistory'] ?? ""; // トレーニング歴
+          isLoading = false; // データ取得後にisLoadingをfalseに設定
         });
       }
     });
   }
 
   Future<void> _signOut() async {
-    // GoogleSignInインスタンスを作成
     final GoogleSignIn _googleSignIn = GoogleSignIn();
-
-    // Firebaseサインアウト
     await FirebaseAuth.instance.signOut();
-
-    // Googleサインアウト
     await _googleSignIn.signOut();
 
-    // サインイン画面に遷移
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => SignInPage()),
@@ -85,109 +78,121 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('ユーザー情報'),
-          backgroundColor: Color(0xFFFFDEA5),
-          centerTitle: true,
-        ),
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'images/sea.jpg',
-                fit: BoxFit.cover,
-              ),
+      appBar: AppBar(
+        title: const Text('ユーザー情報'),
+        backgroundColor: Color(0xFFFFDEA5),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'images/sea.jpg',
+              fit: BoxFit.cover,
             ),
-            Center(
-              child: Column(
-                children: [
-                  const Spacer(flex: 1),
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: ElevatedButton(
-                  //     onPressed: _signOut,
-                  //     child: Text('サインアウト'),
-                  //   ),
-                  // ),
-                  const Spacer(flex: 1),
-                  Card(
-                    margin: EdgeInsets.all(10),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Align(
-                            alignment: const Alignment(0.0, 0.0),
-                            child: CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                              backgroundImage: NetworkImage(photoURL),
-                            ),
+          ),
+          Center(
+            child: isLoading
+                ? CircularProgressIndicator() // ローディング中はプログレスインジケータを表示
+                : SingleChildScrollView(
+                    // スクロール可能にする
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        // ユーザー情報カード
+                        Card(
+                          margin: EdgeInsets.all(10),
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          SizedBox(width: 15),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Text(
-                                username,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Align(
+                                  alignment: const Alignment(0.0, 0.0),
+                                  child: CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: NetworkImage(photoURL),
+                                  ),
                                 ),
-                                overflow:
-                                    TextOverflow.ellipsis, // 名前が長すぎる場合に省略する
-                              ),
+                                SizedBox(width: 15),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    child: Text(
+                                      username,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow:
+                                          TextOverflow.ellipsis, // 名前が長すぎる場合に省略
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  //ユーザーの詳細情報を表示
-                  const SizedBox(height: 5), // スペースを追加
-                  Card(
-                    margin: EdgeInsets.all(10),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Text(
-                            username,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis, // 名前が長すぎる場合に省略する
                           ),
                         ),
-                        const Divider(),
-                        ListTile(
-                          title: const Text('性別:'),
-                          subtitle: Text(sex),
+                        // ユーザーの詳細情報を表示
+                        Card(
+                          margin: EdgeInsets.all(10),
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: const Text('性別:'),
+                                  subtitle: Text(sex),
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('年齢:'),
+                                  subtitle: Text(age.toString()), // 年齢を表示
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('ジム:'),
+                                  subtitle: Text(mygym),
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('目標:'),
+                                  subtitle: Text(goal),
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('コメント:'),
+                                  subtitle: Text(onecomment),
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('トレーニング歴:'),
+                                  subtitle: Text(trainingHistory),
+                                ),
+                                const Divider(),
+                                ListTile(
+                                  title: const Text('所属コミュニティ:'),
+                                  subtitle: Text(community),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        const Divider(),
-                        ListTile(
-                          title: const Text('年齢'),
-                        ),
-                      ]),
+                      ],
                     ),
                   ),
-
-                  const Spacer(flex: 5),
-                ],
-              ),
-            ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 }
