@@ -100,90 +100,96 @@ class _UserScreenState extends State<UserScreen> {
                     child: Column(
                       children: [
                         // ユーザー情報カード
-                        Card(
-                          margin: EdgeInsets.all(10),
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Align(
-                                  alignment: const Alignment(0.0, 0.0),
-                                  child: CircleAvatar(
-                                    radius: 30,
-                                    backgroundColor: Colors.white,
-                                    backgroundImage: NetworkImage(photoURL),
-                                  ),
-                                ),
-                                SizedBox(width: 15),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    child: Text(
-                                      username,
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow:
-                                          TextOverflow.ellipsis, // 名前が長すぎる場合に省略
+                        Container(
+                          width: double.infinity, // 親の幅に合わせる
+                          child: Card(
+                            margin: EdgeInsets.all(10),
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Align(
+                                    alignment: const Alignment(0.0, 0.0),
+                                    child: CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: Colors.white,
+                                      backgroundImage: NetworkImage(photoURL),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 15),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      child: Text(
+                                        username,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow
+                                            .ellipsis, // 名前が長すぎる場合に省略
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                         // ユーザーの詳細情報を表示
-                        Card(
-                          margin: EdgeInsets.all(10),
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: const Text('性別:'),
-                                  subtitle: Text(sex),
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('年齢:'),
-                                  subtitle: Text(age.toString()), // 年齢を表示
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('ジム:'),
-                                  subtitle: Text(mygym),
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('目標:'),
-                                  subtitle: Text(goal),
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('コメント:'),
-                                  subtitle: Text(onecomment),
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('トレーニング歴:'),
-                                  subtitle: Text(trainingHistory),
-                                ),
-                                const Divider(),
-                                ListTile(
-                                  title: const Text('所属コミュニティ:'),
-                                  subtitle: Text(community),
-                                ),
-                              ],
+                        Container(
+                          width: double.infinity, // 親の幅に合わせる
+                          child: Card(
+                            margin: EdgeInsets.all(10),
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8, right: 8),
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    title: const Text('性別:'),
+                                    subtitle: Text(sex),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('年齢:'),
+                                    subtitle: Text(age.toString()), // 年齢を表示
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('ジム:'),
+                                    subtitle: Text(mygym),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('目標:'),
+                                    subtitle: Text(goal),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('コメント:'),
+                                    subtitle: Text(onecomment),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('トレーニング歴:'),
+                                    subtitle: Text(trainingHistory),
+                                  ),
+                                  const Divider(),
+                                  ListTile(
+                                    title: const Text('所属コミュニティ:'),
+                                    subtitle: Text(community),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
