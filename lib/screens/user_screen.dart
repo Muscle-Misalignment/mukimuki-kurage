@@ -193,6 +193,37 @@ class _UserScreenState extends State<UserScreen> {
                             ),
                           ),
                         ),
+                        // サインアウトカード
+                        Container(
+                          width: double.infinity, // 親の幅に合わせる
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 10), // サイドマージンを統一
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: InkWell(
+                              onTap: _signOut,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10, // 縦方向のパディング
+                                  horizontal: 40, // 横方向のパディング
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'サインアウト',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
