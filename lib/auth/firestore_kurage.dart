@@ -43,5 +43,10 @@ Future<void> registerUser(String uid, String username, String photoURL) async {
     'photoURL': photoURL,
     'community': 'watnow',
     'goal': '',
+    'age': 0,
+    'sex': 'men',
+    'mygym': 'joyfit',
+    'mukimukiage': '1ヶ月',
+    'onecomment': 'みんなトレーニングを楽しもう！',
   });
 }
