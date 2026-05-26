@@ -1,16 +1,11 @@
-# watnowhackthon20240918
+# むきむきくらげ
 
-A new Flutter project.
+みんなでくらげをむきむきに育てよう！
+1. ジムに行って筋トレ
+2. クラゲのエサをゲット！
+3. 一定数のエサをクラゲにあげるとくらげがムキムキになるぞ！
 
-## Getting Started
+<img width="186" height="463" alt="image" src="https://github.com/user-attachments/assets/597ed163-d86e-4ac0-9b30-6168b6ff722c" />
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 技術スタック
+[![Skills](https://skillicons.dev/icons?i=flutter,firebase)](https://skillicons.dev)
